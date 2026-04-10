@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mike Travels</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <span class="nav-logo" id="nav-logo-text" onclick="showPage('home');location.hash=''">MIKE TRAVELS</span>
+  <div class="nav-links">
+    <span class="nav-link active" data-page="home" onclick="showPage('home');location.hash=''">Reisen</span>
+    <span class="nav-link" data-page="tips" onclick="showPage('tips');location.hash='tips'">Tipps & Tricks</span>
+    <span class="nav-link mobile-admin-link" data-page="admin" id="nav-admin-link" onclick="showPage('admin');location.hash='admin'" style="display:none">Admin</span>
+  </div>
+  <div class="nav-right">
+    <button class="btn btn-sm" id="nav-login-btn" onclick="openAuthModal()">Anmelden</button>
+    <div id="nav-user-wrap" style="display:none;align-items:center;gap:8px">
+      <div id="nav-avatar"></div>
+      <button class="btn btn-sm" onclick="doLogout()">Abmelden</button>
+    </div>
+  </div>
+  <div class="burger" onclick="document.getElementById('mobile-menu').classList.toggle('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <span class="nav-link" onclick="showPage('home');location.hash=''">Reisen</span>
+  <span class="nav-link" onclick="showPage('tips');location.hash='tips'">Tipps & Tricks</span>
+  <span class="nav-link mobile-admin-link" onclick="showPage('admin')" style="display:none">Admin</span>
+  <span class="nav-link mobile-user-link" onclick="showPage('profile')" style="display:none">Mein Profil</span>
+  <span class="nav-link mobile-login-link" onclick="openAuthModal()">Anmelden / Registrieren</span>
+  <span class="nav-link mobile-user-link" onclick="doLogout()" style="display:none">Abmelden</span>
+</div>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="hero-banner" id="home-banner">
+    <div class="hero-banner-content">
+      <h1 id="home-banner-title">Mike Travels</h1>
+      <p id="home-banner-sub">Geschichten, Orte und Momente von unterwegs</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="flex-between" style="margin-bottom:1.5rem">
+      <div class="section-title" style="margin:0">Alle Reisen</div>
+      <button id="btn-new-trip" class="btn btn-primary" onclick="openTripEditor()" style="display:none">+ Neue Reise</button>
+    </div>
+    <div class="trips-grid" id="trips-grid"></div>
+  </div>
+</div>
+
+<!-- TIPS -->
+<div id="page-tips" class="page">
+  <div class="section">
+    <div class="flex-between" style="margin-bottom:1.5rem">
+      <div class="section-title" style="margin:0">Tipps & Tricks</div>
+      <button id="btn-new-tip" class="btn btn-primary" onclick="openTipEditor()" style="display:none">+ Neuer Tipp</button>
+    </div>
+    <div class="tips-search">
+      <input type="text" id="tips-search-input" placeholder="Suchen…">
+    </div>
+    <div id="tips-list"></div>
+  </div>
+</div>
+
+<!-- TRIP DETAIL (dynamic) -->
+<div id="page-trip" class="page"></div>
+
+<!-- PROFILE -->
+<div id="page-profile" class="page">
+  <div class="profile-wrap" id="profile-wrap"></div>
+</div>
+
+<!-- ADMIN -->
+<div id="page-admin" class="page">
+  <div class="admin-layout">
+    <div class="admin-sidebar">
+      <div class="admin-sidebar-title">Inhalte</div>
+      <div class="admin-nav-item" data-section="trips" onclick="loadAdminSection('trips')">Reisen</div>
+      <div class="admin-nav-item" data-section="tips" onclick="loadAdminSection('tips')">Tipps & Tricks</div>
+      <div class="admin-sidebar-title">System</div>
+      <div class="admin-nav-item" data-section="users" onclick="loadAdminSection('users')">Benutzer</div>
+      <div class="admin-nav-item" data-section="config" onclick="loadAdminSection('config')">Konfiguration</div>
+    </div>
+    <div class="admin-content">
+
+      <!-- ADMIN TRIPS -->
+      <div id="admin-trips" class="admin-section active">
+        <div class="flex-between" style="margin-bottom:1.5rem">
+          <h2 style="margin:0">Reisen</h2>
+          <button class="btn btn-primary" onclick="openTripEditor()">+ Neue Reise</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Titel</th><th>Land</th><th>Status</th><th>Aktionen</th></tr></thead>
+            <tbody id="admin-trips-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADMIN TIPS -->
+      <div id="admin-tips" class="admin-section">
+        <div class="flex-between" style="margin-bottom:1.5rem">
+          <h2 style="margin:0">Tipps & Tricks</h2>
+          <button class="btn btn-primary" onclick="openTipEditor()">+ Neuer Tipp</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Titel</th><th>Typ</th><th>Aktionen</th></tr></thead>
+            <tbody id="admin-tips-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADMIN USERS -->
+      <div id="admin-users" class="admin-section">
+        <h2>Benutzer</h2>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Benutzername</th><th>E-Mail</th><th>Rolle</th><th>Status</th><th>Aktionen</th></tr></thead>
+            <tbody id="admin-users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADMIN CONFIG -->
+      <div id="admin-config" class="admin-section">
+        <h2>Konfiguration</h2>
+        <div class="editor-card">
+          <div class="field"><label>Webseiten-Titel</label><input id="cfg-title" placeholder="Mike Travels"></div>
+          <div class="field"><label>Untertitel / Banner-Text</label><input id="cfg-subtitle" placeholder="Geschichten von unterwegs"></div>
+          <div class="field"><label>Banner-Farbe (Fallback)</label><input type="color" id="cfg-color" value="#1a1a1a"></div>
+          <button class="btn btn-primary" onclick="saveConfig()">Speichern</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- AUTH -->
+<div class="modal-bg" id="auth-modal" onclick="if(event.target===this)closeAuthModal()">
+  <div class="modal">
+    <span class="modal-close" onclick="closeAuthModal()">×</span>
+    <div class="modal-tabs">
+      <div class="modal-tab active" onclick="switchAuthTab('login')">Anmelden</div>
+      <div class="modal-tab" onclick="switchAuthTab('register')">Registrieren</div>
+    </div>
+    <div id="auth-login">
+      <div class="field"><label>Benutzername oder E-Mail</label><input id="l-login" placeholder="name oder name@mail.ch"></div>
+      <div class="field"><label>Passwort</label><input type="password" id="l-pass" placeholder="••••••••"></div>
+      <div class="err" id="l-err"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:.25rem" onclick="doLogin()">Anmelden</button>
+    </div>
+    <div id="auth-register" style="display:none">
+      <div class="field"><label>Benutzername</label><input id="r-user" placeholder="deinname"></div>
+      <div class="field"><label>E-Mail</label><input type="email" id="r-email" placeholder="du@example.com"></div>
+      <div class="field"><label>Passwort</label><input type="password" id="r-pass" placeholder="mind. 6 Zeichen"></div>
+      <div class="err" id="r-err"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:.25rem" onclick="doRegister()">Registrieren</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRIP EDITOR -->
+<div class="modal-bg" id="trip-editor-modal" onclick="if(event.target===this)closeTripEditor()">
+  <div class="modal" style="max-width:620px">
+    <span class="modal-close" onclick="closeTripEditor()">×</span>
+    <h2 id="te-modal-title">Reise bearbeiten</h2>
+    <input type="hidden" id="te-id">
+    <div class="editor-row">
+      <div class="field"><label>Titel *</label><input id="te-title" placeholder="z.B. Sizilien 2025"></div>
+      <div class="field"><label>Land / Länder</label><input id="te-country" placeholder="Italien, Sizilien"></div>
+    </div>
+    <div class="editor-row">
+      <div class="field"><label>Dauer</label><input id="te-duration" placeholder="12 Tage"></div>
+      <div class="field"><label>Emoji (Karte)</label><input id="te-emoji" placeholder="✈️" style="width:80px"></div>
+    </div>
+    <div class="field" style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="te-use-emoji">
+      <label for="te-use-emoji" style="font-size:13px;color:var(--c-text2)">Emoji statt Bild auf Karte verwenden</label>
+    </div>
+    <div class="field"><label>Kurzbeschreibung</label><textarea id="te-summary" placeholder="Kurze Zusammenfassung der Reise…" rows="2"></textarea></div>
+    <div class="field"><label>Beschreibung (HTML möglich)</label>
+      <div class="editor-toolbar">
+        <button onclick="insertHtml('te-description','<b></b>')"><b>B</b></button>
+        <button onclick="insertHtml('te-description','<i></i>')"><i>I</i></button>
+        <button onclick="insertHtml('te-description','<ul><li></li></ul>')">Liste</button>
+        <button onclick="insertHtml('te-description','<a href=&quot;&quot;>Link</a>')">Link</button>
+        <button onclick="insertHtml('te-description','<img src=&quot;URL&quot; style=&quot;max-width:100%&quot;>')">Bild</button>
+      </div>
+      <textarea class="mono" id="te-description" placeholder="Ausführliche Beschreibung der Reise…" rows="3"></textarea>
+    </div>
+    <div class="field">
+      <label>Highlights (HTML möglich)</label>
+      <div class="editor-toolbar">
+        <button onclick="insertHtml('te-highlights','<b></b>')"><b>B</b></button>
+        <button onclick="insertHtml('te-highlights','<i></i>')"><i>I</i></button>
+        <button onclick="insertHtml('te-highlights','<ul><li></li></ul>')">Liste</button>
+        <button onclick="insertHtml('te-highlights','<a href=&quot;&quot;>Link</a>')">Link</button>
+      </div>
+      <textarea class="mono" id="te-highlights" placeholder="<ul><li>Ätna Wanderung</li></ul>" rows="3"></textarea>
+    </div>
+    <div class="field"><label>Spotify Embed-Code</label><textarea id="te-spotify" placeholder='&lt;iframe style="border-radius:12px" src="https://open.spotify.com/embed/..." ...&gt;&lt;/iframe&gt;' rows="2"></textarea></div>
+    <div class="editor-row">
+      <div class="field"><label>Kartenbild hochladen</label><input type="file" id="te-card-img" accept="image/*"></div>
+      <div class="field"><label>Bannerbild hochladen</label><input type="file" id="te-banner-img" accept="image/*"></div>
+    </div>
+    <div class="field" style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="te-published">
+      <label for="te-published" style="font-size:13px;color:var(--c-text2)">Veröffentlicht</label>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+      <button class="btn" onclick="closeTripEditor()">Abbrechen</button>
+      <button class="btn btn-primary" id="te-save-btn" onclick="saveTripEditor()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- POST EDITOR -->
+<div class="modal-bg" id="post-editor-modal" onclick="if(event.target===this)closePostEditor()">
+  <div class="modal" style="max-width:620px">
+    <span class="modal-close" onclick="closePostEditor()">×</span>
+    <h2>Beitrag bearbeiten</h2>
+    <input type="hidden" id="pe-id">
+    <input type="hidden" id="pe-trip-id">
+    <div class="editor-row">
+      <div class="field"><label>Titel *</label><input id="pe-title" placeholder="Titel des Beitrags"></div>
+      <div class="field"><label>Reihenfolge</label><input type="number" id="pe-order" value="0"></div>
+    </div>
+    <div class="field">
+      <label>Inhalt (Text & HTML)</label>
+      <div class="editor-toolbar">
+        <button onclick="insertHtml('pe-content','<b></b>')"><b>B</b></button>
+        <button onclick="insertHtml('pe-content','<i></i>')"><i>I</i></button>
+        <button onclick="insertHtml('pe-content','<h2></h2>')">H2</button>
+        <button onclick="insertHtml('pe-content','<h3></h3>')">H3</button>
+        <button onclick="insertHtml('pe-content','<ul><li></li></ul>')">Liste</button>
+        <button onclick="insertHtml('pe-content','<a href=&quot;&quot;>Link</a>')">Link</button>
+        <button onclick="insertHtml('pe-content','<img src=&quot;URL&quot; style=&quot;max-width:100%&quot;>')">Bild-URL</button>
+        <button onclick="insertHtml('pe-content','<blockquote></blockquote>')">Zitat</button>
+        <button onclick="insertHtml('pe-content','<hr>')">Linie</button>
+      </div>
+      <textarea class="mono" id="pe-content" rows="8" placeholder="Schreibe deinen Beitrag hier…"></textarea>
+    </div>
+    <div id="pe-existing-media" style="display:none;margin-bottom:1rem"></div>
+    <div class="field"><label>Bilder / Videos hochladen (mehrere möglich)</label><input type="file" id="pe-imgs" accept="image/*,video/mp4,video/mov,video/webm" multiple></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+      <button class="btn" onclick="closePostEditor()">Abbrechen</button>
+      <button class="btn btn-primary" id="pe-save-btn" onclick="savePostEditor()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- TIP EDITOR -->
+<div class="modal-bg" id="tip-editor-modal" onclick="if(event.target===this)closeTipEditor()">
+  <div class="modal" style="max-width:560px">
+    <span class="modal-close" onclick="closeTipEditor()">×</span>
+    <h2>Tipp bearbeiten</h2>
+    <input type="hidden" id="tipe-id">
+    <input type="hidden" id="tipe-link-post-id">
+    <div class="editor-row">
+      <div class="field"><label>Titel *</label><input id="tipe-title" placeholder="Titel des Tipps"></div>
+      <div class="field"><label>Typ</label>
+        <select id="tipe-type">
+          <option value="tip">Tipp</option>
+          <option value="trick">Trick</option>
+          <option value="link">Link</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Kurzbeschreibung</label><input id="tipe-desc" placeholder="Kurze Beschreibung für die Übersicht"></div>
+    <div class="field">
+      <label>Mit Reise verknüpfen</label>
+      <select id="tipe-trip-id">
+        <option value="">— Keine —</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Inhalt (Text & HTML)</label>
+      <div class="editor-toolbar">
+        <button onclick="insertHtml('tipe-content','<b></b>')"><b>B</b></button>
+        <button onclick="insertHtml('tipe-content','<i></i>')"><i>I</i></button>
+        <button onclick="insertHtml('tipe-content','<a href=&quot;&quot;>Link</a>')">Link</button>
+        <button onclick="insertHtml('tipe-content','<ul><li></li></ul>')">Liste</button>
+        <button onclick="insertHtml('tipe-content','<blockquote></blockquote>')">Zitat</button>
+        <button onclick="insertHtml('tipe-content','<hr>')">Linie</button>
+      </div>
+      <textarea class="mono" id="tipe-content" rows="5" placeholder="Detailierter Inhalt des Tipps…"></textarea>
+    </div>
+    <div class="field" style="display:flex;align-items:center;gap:8px">
+      <input type="checkbox" id="tipe-published" checked>
+      <label for="tipe-published" style="font-size:13px;color:var(--c-text2)">Veröffentlicht</label>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
+      <button class="btn" onclick="closeTipEditor()">Abbrechen</button>
+      <button class="btn btn-primary" id="tipe-save-btn" onclick="saveTipEditor()">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox"></div>
+
+<!-- MEDIA UPLOAD MODAL -->
+<div class="modal-bg" id="media-upload-modal" onclick="if(event.target===this)closeMediaUpload()">
+  <div class="modal" style="max-width:440px">
+    <span class="modal-close" onclick="closeMediaUpload()">×</span>
+    <h2>Medien hochladen</h2>
+    <input type="hidden" id="mu-post-id">
+    <div class="field">
+      <label>Bilder oder Videos auswählen</label>
+      <input type="file" id="mu-files" accept="image/*,video/mp4,video/mov,video/webm" multiple>
+    </div>
+    <div id="mu-progress" style="font-size:13px;color:var(--c-text2);margin-bottom:.75rem"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeMediaUpload()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="uploadPostMedia()">Hochladen</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="success-toast" id="toast"></div>
+
+<script src="assets/js/app_1775759080.js"></script>
+<script>
+function updateAdminButtons() {
+  const isAdmin = state.user?.is_admin === true;
+  document.getElementById('btn-new-trip').style.display = isAdmin ? '' : 'none';
+  document.getElementById('btn-new-tip').style.display = isAdmin ? '' : 'none';
+}
+
+const _origSetUser = window.setUser;
+window.setUser = function(u) {
+  if (u) {
+    u.is_admin = parseInt(u.is_admin) === 1;
+    u.is_active = parseInt(u.is_active) === 1;
+  }
+  state.user = u;
+  updateNav();
+  if (u) { loadLikedTips(); updateAdminButtons(); }
+};
+
+const _origShowPage = window.showPage;
+window.showPage = function(name) {
+  document.querySelectorAll('.page').forEach(p => { p.style.display='none'; p.classList.remove('active'); });
+  const pg = document.getElementById('page-'+name);
+  if (pg) { pg.style.display='block'; pg.classList.add('active'); }
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page===name));
+  window.scrollTo(0,0);
+  if (document.getElementById('mobile-menu')) document.getElementById('mobile-menu').classList.remove('open');
+  if (name==='home') { loadTrips(); updateAdminButtons(); }
+  if (name==='tips') { loadTips(); updateAdminButtons(); }
+  if (name==='admin') loadAdminSection('trips');
+  if (name==='profile') loadProfile();
+};
+</script>
+</body>
+</html>
